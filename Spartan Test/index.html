@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Spartan App</title>
+    <link rel="stylesheet" type="text/css" href="StyleSheet.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div class ="search"id="search">
+        <h2>Search by ID</h2>  
+        <div class="form-group">    
+            <label class="radio-inline"><input type="radio" name="type" value ="Id"checked>ID</label>
+            <label class="radio-inline"><input type="radio" name="type" value="ExternalID">ExternalID</label>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="prodId" size="5" />
+            <input type="button" value="Search" onclick="find();" />
+        </div>
+    </div>
+
+            
+    <div>
+                <h2 class="h2">Equipment</h2>
+                <div id="products" />
+            </div>
+
+
+            <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+            <script>
+                var uri = 'api/equipment';
+
+                // function to get all the data
+                function getAll() {
+                    // Send an AJAX request to get all
+                    $.getJSON(uri+'/Get')
+                        .done(function (data) {
+                            // On success, 'data' contains a list of products.
+                            $.each(data, function (key, item) {
+                                // Add a list item for the equipment.
+
+                                $('#products').append("<div class='card' id ='" + item.Id + "'><h2> ID: " + item.Id + "</h2> <p> External ID:"+ item.ExternalId+"</p> <p>" + item.Description + "</p></div>");
+                            });
+                        });
+                }
+                $(document).ready(function () {
+
+                    getAll();
+                });
+
+                // search function to look through data
+                function find() {
+                    // get searching value
+                    var id = $('#prodId').val();
+                    //get radiobutton value
+                    var radioValue = $("input[name='type']:checked").val();
+                    // check if the id is empty
+                    if (!$('#prodId').val()) { $('#products').empty(); getAll(); } else {
+                        // if not empt and value is id
+                        if (radioValue == "Id") {
+                            // call api to get equipment by id
+                            $.getJSON(uri + '/GetEquipmentById/' + id)
+                                .done(function (item) {
+                                    // empty the div
+                                    $('#products').empty();
+                                    //add new data to the div
+                                    $('#products').append("<div class='card' id ='" + item.Id + "'><h2> ID:" + item.Id + " </h2> <p>External ID:" + item.ExternalId + "</p> <p>" + item.Description + "</p></div>");
+                                })
+                                .fail(function (jqXHR, textStatus, err) {
+                                    $('#products').empty();
+                                    //return not found
+                                    $('#products').append("<div class='card'><h2>no items found </h2> </div>");
+
+                                });
+                        }
+                        //if radio value is externalID
+                        if (radioValue == "ExternalID") {
+                            // call api searching by externalId
+                            $.getJSON(uri + '/GetEquipmentByExternalId/' + parseInt(id))
+                                .done(function (item) {
+                                    // empty div
+                                    $('#products').empty();
+                                    // fill div with results
+                                    $('#products').append("<div class='card' id ='" + item.Id + "'><h2> ID: " + item.Id + "</h2> <p> ExternalID" + item.ExternalId + "</p> <p>" + item.Description + "</p></div>");
+
+                                })
+                                .fail(function (jqXHR, textStatus, err) {
+                                    $('#products').empty();
+                                    // tel;l the user that nothing was found
+                                    $('#products').append("<div class='card'><h2>no items found </h2> </div>");
+                                });
+                        }
+                    }
+                }
+            </script>
+</body>
+</html>
